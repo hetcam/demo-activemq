@@ -34,12 +34,12 @@
 	<!-- ======================================================= -->
 	<!-- JMS Send, define default destination and JmsTemplate -->
 	<!-- ======================================================= -->
-	<!-- Default Destination Queue Definition -->
+	<!-- Default Destination Queue Definition 
 	<bean id="defaultDestination" class="org.apache.activemq.command.ActiveMQQueue">
-		<!-- name of the queue -->
+		name of the queue
 		<constructor-arg index="0" value="Send2Recv" />
 	</bean>
-
+	-->
 	<!-- =============================================== -->
 	<!-- JMS receive, define JmsListenerContainerFactory -->
 	<!-- =============================================== -->
@@ -48,23 +48,24 @@
 		<property name="connectionFactory" ref="connectionFactory" />
 		<property name="concurrency" value="3-10" />
 	</bean>
-
+	
 	<!-- JmsTemplate Definition -->
 	<bean id="jmsTemplate" class="org.springframework.jms.core.JmsTemplate">
 		<property name="connectionFactory" ref="connectionFactory" />
-		<property name="defaultDestination" ref="defaultDestination" />
+		<!--  <property name="defaultDestination" ref="defaultDestination" /> -->
 	</bean>
+	
 	<!-- Message Consumer from Default Destination -->
-	<bean id="messageDefaultConsumer" class="com.demo.activemq.JmsMessageListener" />
+	<!-- <bean id="messageDefaultConsumer" class="com.demo.activemq.app.JmsMessageListener" /> -->
 
-	<!-- Message Consumer Container for Default Destination -->
-	<bean
+	<!-- Message Consumer Container for Default Destination 
+	<bean id="jmsContainer"
 		class="org.springframework.jms.listener.DefaultMessageListenerContainer">
 		<property name="connectionFactory" ref="connectionFactory" />
 		<property name="destinationName" value="Send2Recv" />
 		<property name="messageListener" ref="messageDefaultConsumer" />
 	</bean>
-
+	-->
 	<!-- MySql DataSource Setup -->
 	<bean id="mysql-ds" class="org.apache.commons.dbcp.BasicDataSource"
 		destroy-method="close">
