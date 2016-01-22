@@ -3,16 +3,19 @@
  */
 package com.demo.activemq.app;
 
-import java.util.Map;
-
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageListener;
 import javax.jms.TextMessage;
 
-import org.apache.activemq.command.ActiveMQMapMessage;
+import org.apache.activemq.command.ActiveMQObjectMessage;
+import org.apache.log4j.Logger;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Service;
+
+import com.demo.activemq.dao.AccessDAO;
+import com.demo.activemq.domain.Queue;
+import com.demo.activemq.util.Util.State;
 
 /**
  * This class is a listener for queues
@@ -21,30 +24,44 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class JmsMessageListener implements MessageListener {
+	
+	final static Logger log = Logger.getLogger(JmsMessageListener.class);
 	/**
-	 * This methos receive the message
+	 * This method receive the message when is custom destination
 	 * @param message
 	 * @throws JMSException
 	 */
-	@JmsListener(destination = "queue.foo")
+	@JmsListener(destination = "one-queue.foo")
 	public void processMessage(Message message) throws JMSException {
-		ActiveMQMapMessage amq = (ActiveMQMapMessage)message;
-		Map<String,Object> map = amq.getContentMap();
-		System.out.println("Received JMSMessageID: " + message.getJMSMessageID());
-		System.out.println("Received JMSTimestamp: " + message.getJMSTimestamp());
-		System.out.println("Received JMSCorrelationID: " + message.getJMSCorrelationID());
-		System.out.println("Received ClientID: " + map.get("ClientID"));
-		System.out.println("Received OperationType: " + map.get("OperationType"));
+		log.debug("Receiving the message ... ");
+		Queue queue = null;
+		try {
+			ActiveMQObjectMessage amq = (ActiveMQObjectMessage)message;
+			queue = (Queue) amq.getObject();
+			queue.setState(State.DELIVERED);
+			log.info("Received JMSMessageID: " + message.getJMSMessageID());
+			log.info("Received JMSTimestamp: " + message.getJMSTimestamp());
+			log.info("Received JMSCorrelationID: " + message.getJMSCorrelationID());
+			log.info("Received ClientID: " + queue.getClientID());
+			log.info("Received OperationType: " + queue.getOperationType());
+			
+			AccessDAO.persistQueue(queue);
+			
+		} catch (Exception e) {
+			log.error("An error occurred when the message is received",e);
+		}
 	}
 	/**
-	 * This method is when destination is by default
+	 * This method is used when is default destination
 	 */
+	@Override
 	public void onMessage(Message message) {
 		if (message instanceof TextMessage) {
 			try {
-				System.out.println("Mssg ID: "+message.getJMSMessageID());
+				log.info("Mssg ID: "+message.getJMSMessageID());
 				String msg = ((TextMessage) message).getText();
-				System.out.println("Message has been consumed : " + msg);
+				log.info("Message has been consumed : " + msg);
+				
 			} catch (JMSException ex) {
 				throw new RuntimeException(ex);
 			}
@@ -52,5 +69,7 @@ public class JmsMessageListener implements MessageListener {
 			throw new IllegalArgumentException("Message must be of type TextMessage");
 		}
 	}
+	
+	
 
 }

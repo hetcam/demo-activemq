@@ -32,11 +32,19 @@ public class AccessDAO {
 		try {
 			BasicDataSource ds = (BasicDataSource) ctx.getBean("mysql-ds");
 			Connection conn = (Connection) ds.getConnection();
-			String sql = "INSERT INTO queue_messages(queue_name,message,state) VALUES (?,?,?);";
+			StringBuilder sb = new StringBuilder("INSERT INTO queues");
+			sb.append(" (name, state, JMSMessageID, JMSTimestamp, JMSCorrelationID, client_id, operation_type)");
+			sb.append(" VALUES (?,?,?,?,?,?,?)");
+			String sql = sb.toString();
+			log.debug("Executing sql: "+sql);
 			PreparedStatement stm = conn.prepareStatement(sql);
 			stm.setString(1, queue.getName());
-			stm.setString(2, queue.getMessage());
-			stm.setString(3, queue.getState());
+			stm.setString(2, String.valueOf(queue.getState()));
+			stm.setString(3, queue.getjMSMessageID());
+			stm.setLong(4, queue.getjMSTimestamp());
+			stm.setString(5, queue.getjMSCorrelationID());
+			stm.setString(6, queue.getClientID());
+			stm.setString(7, String.valueOf(queue.getOperationType()));
 			int result = stm.executeUpdate();
 			log.info("Insert in database was: " + (result > 0 ? "success" : "failed"));
 		} catch (Exception e) {

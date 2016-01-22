@@ -3,22 +3,30 @@
  */
 package com.demo.activemq.domain;
 
+import java.io.Serializable;
+
+import com.demo.activemq.util.Util.OperationType;
+import com.demo.activemq.util.Util.State;
+
 /**
  * This class is a entity for mapping table queue_messages
  * 
  * @author camilo
  *
  */
-public class Queue {
+public class Queue implements Serializable{
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -8835844991858966662L;
 	String jMSMessageID; // : ID:camilo-PC-55079-1453371901992-1:1:4:1:1
 	long jMSTimestamp; // 1453371902148
 	String jMSCorrelationID; // 73670-002
 	String clientID; // 2346
-	String operationType; // Read
-
+	OperationType operationType; // Read
 	String name;
-	String state;
+	State state;
 
 	public String getjMSMessageID() {
 		return jMSMessageID;
@@ -52,11 +60,11 @@ public class Queue {
 		this.clientID = clientID;
 	}
 
-	public String getOperationType() {
+	public OperationType getOperationType() {
 		return operationType;
 	}
 
-	public void setOperationType(String operationType) {
+	public void setOperationType(OperationType operationType) {
 		this.operationType = operationType;
 	}
 
@@ -68,11 +76,11 @@ public class Queue {
 		this.name = name;
 	}
 
-	public String getState() {
+	public State getState() {
 		return state;
 	}
 
-	public void setState(String state) {
+	public void setState(State state) {
 		this.state = state;
 	}
 

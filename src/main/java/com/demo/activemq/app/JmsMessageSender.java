@@ -3,32 +3,33 @@
  */
 package com.demo.activemq.app;
 
-import java.sql.Timestamp;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
-
 import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.Session;
 
 import org.apache.activemq.command.ActiveMQQueue;
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.core.MessageCreator;
 import org.springframework.jms.core.MessagePostProcessor;
 import org.springframework.stereotype.Service;
 
+import com.demo.activemq.dao.AccessDAO;
 import com.demo.activemq.domain.Queue;
+import com.demo.activemq.util.Util.State;
 
 /**
+ * This class is to send all messages 
  * @author camilo
  *
  */
 @Service
 public class JmsMessageSender {
+	
+	final static Logger log = Logger.getLogger(JmsMessageListener.class);
+	
 	@Autowired
 	private JmsTemplate jmsTemplate;
 
@@ -58,7 +59,6 @@ public class JmsMessageSender {
 	public void sendText(final String text) {
 		this.jmsTemplate.convertAndSend(text);
 	}
-
 	/**
 	 * Send text message to a specified destination or queue
 	 * 
@@ -70,42 +70,25 @@ public class JmsMessageSender {
 			@Override
 			public Message createMessage(Session session) throws JMSException {
 				Message message = session.createTextMessage(text);
-				System.out.println("JMSMessageID is : "+message.getJMSMessageID());
+				log.info("JMSMessageID is : "+message.getJMSMessageID());
+				message.setJMSMessageID("ID:message-2253");
 				return message;
 			}
 		});
 	}
 	/**
-	 * Set message with conversion
-	 * @param dest
-	 * @param text
-	 */
-	public void sendWithConversion(final Destination dest, final String text) {
-	    Map<String,Object> map = new HashMap<String,Object>();
-	    map.put("ClientID", 2346);
-	    map.put("OperationType", "Read"); // Read/Write/Both
-	    this.jmsTemplate.convertAndSend(dest, map, new MessagePostProcessor() {
-	        public Message postProcessMessage(Message message) throws JMSException {
-	            message.setJMSMessageID("ID:camilo-PC-55075-1453371865916-1:1:4:1:2-custom");
-				message.setJMSTimestamp(new Timestamp(new Date().getTime()).getTime());
-	            message.setJMSCorrelationID( (String.valueOf(new Random().nextInt(999999)+1000)) + "-002");
-	            return message;
-	        }
-	    });
-	}
-	/**
-	 * Set message with conversion by Queue
+	 * Set message and transform headers and properties
 	 * @param queue
 	 */
 	public void sendWithConversion(Queue queue) {
-	    Map<String,Object> map = new HashMap<String,Object>();
-	    map.put("ClientID", queue.getClientID());
-	    map.put("OperationType", queue.getOperationType()); // Read/Write/Both
-	    this.jmsTemplate.convertAndSend(queue.getName(), map, new MessagePostProcessor() {
+		log.debug("Sending message ... ");
+	    queue.setState(State.PROCESSED);
+	    this.jmsTemplate.convertAndSend(queue.getName(), queue, new MessagePostProcessor() {
 	        public Message postProcessMessage(Message message) throws JMSException {
 	            message.setJMSMessageID(queue.getjMSMessageID());
 				message.setJMSTimestamp(queue.getjMSTimestamp());
 	            message.setJMSCorrelationID(queue.getjMSCorrelationID());
+	            AccessDAO.persistQueue(queue);
 	            return message;
 	        }
 	    });
