@@ -34,3 +34,5 @@ INSERT INTO `queues` VALUES (7, 'queueone', 'sent', '', 0, '', '', '', '2016-01-
 INSERT INTO `queues` VALUES (8, 'queueone', 'sent', '', 0, '', '', '', '2016-01-21 00:56:27');
 
 delete from queues;
+
+select count(1) from queues;
